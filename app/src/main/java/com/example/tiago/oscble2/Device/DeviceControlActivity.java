@@ -317,12 +317,12 @@ public class DeviceControlActivity extends Activity {
 
         if (data != null) {
 
-            setData(mHandleMessage.validateData(data));
-
-            if(mHandleMessage.getStringToShow() != null)
+            if(mHandleMessage.validateData(data) == 0)
             {
+                setData(mHandleMessage.getValues());
                 mDataField.setText(mHandleMessage.getStringToShow());
             }
+
         }
     }
 

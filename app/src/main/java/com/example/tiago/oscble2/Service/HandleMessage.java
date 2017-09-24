@@ -29,10 +29,11 @@ public class HandleMessage {
     StringBuilder recDataString = new StringBuilder();
     String stringToShow = null;
     ArrayList<Entry> values = new ArrayList<Entry>();
+    ArrayList<Entry> valuesAux;
 
 
 
-    public ArrayList<Entry> validateData (String data) {
+    public int validateData (String data) {
         // msg.arg1 = bytes from connect thread
         recDataString.append(data);
 
@@ -49,8 +50,7 @@ public class HandleMessage {
                     float y = 0;
                     try {
                         y = Float.parseFloat(strValues[x]);
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         Log.e(TAG, "messageHandling exception", e);
                         recDataString.delete(0, recDataString.length());                            //clear all string data
                         //agregar aviso de mensaje no recibido
@@ -58,16 +58,19 @@ public class HandleMessage {
 
                     values.add(new Entry(x, y));
                 }
+                recDataString.delete(0, recDataString.length());                            //clear all string data
+                valuesAux = new ArrayList<Entry>(values);                                   //copy values to valuesAux for values clean
+                values.clear();
+                return 0;
             }
 
-            recDataString.delete(0, recDataString.length());                            //clear all string data
+
         }
-        return values;
+        return -1;
     }
 
     public String getStringToShow (){
         return stringToShow;
     }
-
-
+    public ArrayList<Entry> getValues (){return valuesAux;}
 }
