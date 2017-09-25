@@ -127,7 +127,8 @@ public class DeviceControlActivity extends Activity {
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
                 mBluetoothLeService.setCharacteristicNotification(characteristicRX,true);               //esta bien ahi?????????????????????????????????''
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                displayData(intent.getStringExtra(mBluetoothLeService.EXTRA_DATA));
+                //displayData(intent.getStringExtra(mBluetoothLeService.EXTRA_DATA));
+                displayData(intent.getByteArrayExtra(mBluetoothLeService.EXTRA_DATA));
             }
         }
     };
@@ -223,7 +224,7 @@ public class DeviceControlActivity extends Activity {
         xAxis.setDrawLabels(false);
         xAxis.setCenterAxisLabels(false);
         xAxis.setGranularity(1f); // one hour
-        xAxis.setAxisMaximum(100);
+        xAxis.setAxisMaximum(640);
         xAxis.setAxisMinimum(0);
 
 
@@ -313,17 +314,14 @@ public class DeviceControlActivity extends Activity {
         });
     }
 
-    private void displayData(String data) {
+    private void displayData(byte[] data) {
 
-        if (data != null) {
-
-            if(mHandleMessage.validateData(data) == 0)
-            {
-                setData(mHandleMessage.getValues());
-                mDataField.setText(mHandleMessage.getStringToShow());
-            }
-
+        if(mHandleMessage.validateData(data) == 0)
+        {
+            setData(mHandleMessage.getValues());
+            mDataField.setText(mHandleMessage.getStringToShow());
         }
+
     }
 
 
