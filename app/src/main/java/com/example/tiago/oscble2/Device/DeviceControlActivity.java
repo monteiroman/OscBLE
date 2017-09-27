@@ -21,7 +21,6 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -33,7 +32,6 @@ import java.util.UUID;
 import android.widget.SeekBar;
 
 import com.example.tiago.oscble2.Service.BluetoothLeService;
-import com.example.tiago.oscble2.Service.HandleMessage;
 import com.example.tiago.oscble2.R;
 import com.example.tiago.oscble2.SampleGattAttributes;
 import com.github.mikephil.charting.charts.LineChart;
@@ -80,7 +78,31 @@ public class DeviceControlActivity extends Activity {
 
     private LineChart mChart;
     Typeface mTfLight;
-    public HandleMessage mHandleMessage = new HandleMessage();
+    
+    String stringToShow = null;
+    ArrayList<Entry> values = new ArrayList<Entry>();
+    int x=0;
+    byte vDiv;
+    byte tDiv;
+
+    static final char SUP=255;
+    static final char SDN=245;
+    static final char SVD=243;
+    static final char STD=247;
+
+    char state;
+    static final char SUP_READ=0;
+    static final char SDN_READ=1;
+    static final char SVD_READ=2;
+    static final char STD_READ=3;
+    static final char READ_HEADER=4;
+
+
+    StringBuilder recDataString = new StringBuilder();
+
+
+
+
 
 
     // Code to manage Service lifecycle.
@@ -316,11 +338,11 @@ public class DeviceControlActivity extends Activity {
 
     private void displayData(byte[] data) {
 
-        if(mHandleMessage.validateData(data) == 0)
-        {
-            setData(mHandleMessage.getValues());
-            mDataField.setText(mHandleMessage.getStringToShow());
-        }
+
+
+        validateData(data);
+
+
 
     }
 
@@ -363,37 +385,7 @@ public class DeviceControlActivity extends Activity {
         return intentFilter;
     }
 
-  /*  private void readSeek(SeekBar seekBar,final int pos) {
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress,
-                                          boolean fromUser) {
-                RGBFrame[pos]=progress;
-            }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // TODO Auto-generated method stub
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // TODO Auto-generated method stub
-                makeChange();
-            }
-        });
-    }
-    // on change of bars write char
-    private void makeChange() {
-        String str = RGBFrame[0] + "," + RGBFrame[1] + "," + RGBFrame[2] + "\n";
-        Log.d(TAG, "Sending result=" + str);
-        final byte[] tx = str.getBytes();
-        if(mConnected) {
-            characteristicTX.setValue(tx);
-            mBluetoothLeService.writeCharacteristic(characteristicTX);
-            mBluetoothLeService.setCharacteristicNotification(characteristicRX,true);
-        }
-    }*/
 
     public void setData(ArrayList<Entry> values) {
 
@@ -433,5 +425,81 @@ public class DeviceControlActivity extends Activity {
     }
 
 
+
+    public void validateData (byte[] data) {
+
+        for(int i=0; i<data.length; i++) {
+            switch (state) {
+                case READ_HEADER:
+
+                    if (data[i] == SUP)
+                        state = SUP_READ;
+                    if (data[i] == SDN)
+                        state = SDN_READ;
+                    if (data[i] == SVD)
+                        state = SVD_READ;
+                    if (data[i] == STD)
+                        state = STD_READ;
+
+                    break;
+
+                case SUP_READ:
+
+                    if (data[i] < 241) {
+                        values.add(new Entry(x, data[i]));
+                        recDataString.append(data);
+                    }
+                    x++;
+                    if( x == 640 ){
+                        x=0;
+                        setData(values);
+                        mDataField.setText(recDataString);
+                    }
+
+                    state = READ_HEADER;
+
+                    break;
+
+                case SDN_READ:
+
+                    if (data[i] < 241) {
+                        values.add(new Entry(x, (-1) * data[i]));
+                        recDataString.append(data);
+                    }
+                    x++;
+                    if( x == 640 ){
+                        x=0;
+                        setData(values);
+                        mDataField.setText(recDataString);
+                    }
+
+                    state = READ_HEADER;
+
+                    break;
+
+                case SVD_READ:
+
+                    vDiv = data[i];
+
+                    state = READ_HEADER;
+
+                    break;
+
+                case STD_READ:
+
+                    tDiv = data[i];
+
+                    state = READ_HEADER;
+
+                    break;
+
+                default:
+
+                    state = READ_HEADER;
+
+                    break;
+            }
+        }
+    }
 
 }
