@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,17 +81,17 @@ public class DeviceControlActivity extends Activity {
     Typeface mTfLight;
     
     String stringToShow = null;
-    ArrayList<Entry> values = new ArrayList<Entry>();
-    int x=0;
+
+
     byte vDiv;
     byte tDiv;
 
-    static final char SUP=255;
+    static final int SUP=-1;
     static final char SDN=245;
     static final char SVD=243;
     static final char STD=247;
 
-    char state;
+    char state = READ_HEADER;
     static final char SUP_READ=0;
     static final char SDN_READ=1;
     static final char SVD_READ=2;
@@ -257,8 +258,8 @@ public class DeviceControlActivity extends Activity {
         leftAxis.setDrawLabels(false);
         leftAxis.setGranularityEnabled(true);
         leftAxis.setGranularity(0.1f);
-        leftAxis.setAxisMinimum(-12f);
-        leftAxis.setAxisMaximum(12f);
+        leftAxis.setAxisMinimum(-100f);
+        leftAxis.setAxisMaximum(100f);
 //        leftAxis.setYOffset(0f);
 //        leftAxis.setDrawAxisLine(true);
 //        leftAxis.setAxisLineWidth(2);
@@ -387,7 +388,13 @@ public class DeviceControlActivity extends Activity {
 
 
 
-    public void setData(ArrayList<Entry> values) {
+    public void setData(int[] inData) {
+
+        ArrayList<Entry> values = new ArrayList<Entry>();
+
+        for(int i=0; i<inData.length; i++){
+            values.add(new Entry(i, inData[i]));
+        }
 
         // create a dataset and give it a type
         LineDataSet set1 = new LineDataSet(values, "DataSet 1");
@@ -422,13 +429,18 @@ public class DeviceControlActivity extends Activity {
         }
 
         mChart.invalidate();
+
     }
 
 
 
     public void validateData (byte[] data) {
 
-        for(int i=0; i<data.length; i++) {
+        int[] procData = new int[640];
+        int j=0;
+
+
+        for(int i=0;i<data.length; i++) {
             switch (state) {
                 case READ_HEADER:
 
@@ -446,13 +458,14 @@ public class DeviceControlActivity extends Activity {
                 case SUP_READ:
 
                     if (data[i] < 241) {
-                        values.add(new Entry(x, data[i]));
-                        recDataString.append(data);
+                        procData[j] = data[i];
+                        recDataString.append(data[i]);
+                        j++;
                     }
-                    x++;
-                    if( x == 640 ){
-                        x=0;
-                        setData(values);
+
+                    if( j == 640 ){
+                        j=0;
+                        setData(procData);
                         mDataField.setText(recDataString);
                     }
 
@@ -463,13 +476,13 @@ public class DeviceControlActivity extends Activity {
                 case SDN_READ:
 
                     if (data[i] < 241) {
-                        values.add(new Entry(x, (-1) * data[i]));
-                        recDataString.append(data);
+                        procData[j] = (-1)*data[i];
+                        recDataString.append(data[i]);
+                        j++;
                     }
-                    x++;
-                    if( x == 640 ){
-                        x=0;
-                        setData(values);
+                    if( j == 640 ){
+                        j=0;
+                        setData(procData);
                         mDataField.setText(recDataString);
                     }
 
