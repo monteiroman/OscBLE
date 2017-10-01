@@ -61,6 +61,8 @@ public class DeviceControlActivity extends Activity {
     private TextView isSerial;
     private TextView mConnectionState;
     private TextView mDataField;
+    private TextView mTDivision;
+    private TextView mVDivision;
     private SeekBar mRed, mGreen, mBlue;
     private String mDeviceName;
     private String mDeviceAddress;
@@ -79,9 +81,6 @@ public class DeviceControlActivity extends Activity {
 
     private LineChart mChart;
     Typeface mTfLight;
-
-    String stringToShow = null;
-
 
     byte vDiv;
     byte tDiv;
@@ -102,7 +101,8 @@ public class DeviceControlActivity extends Activity {
     StringBuilder recDataString = new StringBuilder();
 
     int[] procData = new int[640];
-    int j = 0;
+    int j = 0, dataPckRec = 0;
+
 
 
     // Code to manage Service lifecycle.
@@ -175,17 +175,14 @@ public class DeviceControlActivity extends Activity {
         // Sets up UI references.
         ((TextView) findViewById(R.id.device_address)).setText(mDeviceAddress);
         mConnectionState = (TextView) findViewById(R.id.connection_state);
+        mTDivision = (TextView) findViewById(R.id.tDivision);
+        mVDivision = (TextView) findViewById(R.id.vDivision);
+
         // is serial present?
-        isSerial = (TextView) findViewById(R.id.isSerial);
+//        isSerial = (TextView) findViewById(R.id.isSerial);
 
         mDataField = (TextView) findViewById(R.id.data_value);
-        /*mRed = (SeekBar) findViewById(R.id.seekRed);
-        mGreen = (SeekBar) findViewById(R.id.seekGreen);
-        mBlue = (SeekBar) findViewById(R.id.seekBlue);
 
-        readSeek(mRed,0);
-        readSeek(mGreen,1);
-        readSeek(mBlue,2);*/
 
         getActionBar().setTitle(mDeviceName);
         getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -213,8 +210,8 @@ public class DeviceControlActivity extends Activity {
         mChart.setBorderWidth(10f);
 
         // enable scaling and dragging
-        //mChart.setDragEnabled(true);
-        //mChart.setScaleEnabled(true);
+//        mChart.setDragEnabled(true);
+//        mChart.setScaleEnabled(true);
         mChart.setDrawGridBackground(true);
         mChart.setHighlightPerDragEnabled(true);
 
@@ -329,15 +326,18 @@ public class DeviceControlActivity extends Activity {
             @Override
             public void run() {
                 mConnectionState.setText(resourceId);
+                if( resourceId == R.string.connected ){
+                    mConnectionState.setTextColor(Color.parseColor("#27AE60"));
+                }else{
+                    mConnectionState.setTextColor(Color.parseColor("#E74C3C"));
+                }
             }
         });
     }
 
     private void displayData(byte[] data) {
 
-
         validateData(data);
-
 
     }
 
@@ -360,11 +360,11 @@ public class DeviceControlActivity extends Activity {
                     LIST_NAME, SampleGattAttributes.lookup(uuid, unknownServiceString));
 
             // If the service exists for HM 10 Serial, say so.
-            if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
+ /*           if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
                 isSerial.setText("Yes, serial :-)");
             } else {
                 isSerial.setText("No, serial :-(");
-            }
+            }*/
             currentServiceData.put(LIST_UUID, uuid);
             gattServiceData.add(currentServiceData);
 
@@ -410,15 +410,15 @@ public class DeviceControlActivity extends Activity {
 
                     if (unsignedData < 241) {
                         procData[j] = unsignedData;
-                        recDataString.append(unsignedData + ",");
+//                        recDataString.append(unsignedData + ",");
                         j++;
                     }
 
                     if (j == 640) {
                         j = 0;
                         setData(procData);
-                        mDataField.setText(recDataString);
-                        recDataString.delete(0, recDataString.length());                            //clear all string data
+//                        mDataField.setText(recDataString);
+//                        recDataString.delete(0, recDataString.length());                            //clear all string data
                     }
 
                     state = READ_HEADER;
@@ -429,14 +429,14 @@ public class DeviceControlActivity extends Activity {
 
                     if (unsignedData < 241) {
                         procData[j] = -(240 - unsignedData);
-                        recDataString.append("-" + unsignedData + ",");
+//                        recDataString.append("-" + unsignedData + ",");
                         j++;
                     }
                     if (j == 640) {
                         j = 0;
                         setData(procData);
-                        mDataField.setText(recDataString);
-                        recDataString.delete(0, recDataString.length());
+//                        mDataField.setText(recDataString);
+//                        recDataString.delete(0, recDataString.length());
                     }
 
                     state = READ_HEADER;
@@ -446,6 +446,7 @@ public class DeviceControlActivity extends Activity {
                 case SVD_READ:
 
                     vDiv = (byte) unsignedData;
+                    mVDivision.setText(String.valueOf(vDiv));
 
                     state = READ_HEADER;
 
@@ -454,6 +455,7 @@ public class DeviceControlActivity extends Activity {
                 case STD_READ:
 
                     tDiv = (byte) unsignedData;
+                    mTDivision.setText(String.valueOf(tDiv));
 
                     state = READ_HEADER;
 
@@ -472,6 +474,8 @@ public class DeviceControlActivity extends Activity {
     public void setData(int[] inData) {
 
         ArrayList<Entry> values = new ArrayList<Entry>();
+        dataPckRec++;
+        mDataField.setText(String.valueOf(dataPckRec));
 
         for (int i = 0; i < inData.length; i++) {
             values.add(new Entry(i, inData[i]));
@@ -502,13 +506,13 @@ public class DeviceControlActivity extends Activity {
 
         //bezier approximation
         List<ILineDataSet> sets = mChart.getData().getDataSets();
-
+/*
         for (ILineDataSet iSet : sets) {
 
             LineDataSet set = (LineDataSet) iSet;
             set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         }
-
+*/
         mChart.invalidate();
 
     }

@@ -14,7 +14,8 @@
      limitations under the License.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="horizontal"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="2dp"
@@ -29,13 +30,13 @@
     <LinearLayout
         android:layout_width="50dp"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_weight="0.28">
+        android:layout_weight="0.28"
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
+            android:layout_margin="5dp"
             android:orientation="vertical">
 
             <TextView
@@ -51,7 +52,7 @@
                 android:textSize="18sp" />
 
             <Space
-                android:layout_width="5dp"
+                android:layout_width="2dp"
                 android:layout_height="wrap_content" />
 
         </LinearLayout>
@@ -59,8 +60,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:orientation="vertical">
+            android:layout_margin="5dp"
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -69,7 +70,7 @@
                 android:textSize="18sp" />
 
             <Space
-                android:layout_width="5dp"
+                android:layout_width="2dp"
                 android:layout_height="wrap_content" />
 
             <TextView
@@ -83,8 +84,58 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
+            android:layout_margin="5dp"
             android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_tDivision"
+                android:textSize="18sp" />
+
+            <Space
+                android:layout_width="2dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tDivision"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/no_data"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_vDivision"
+                android:textSize="18sp" />
+
+            <Space
+                android:layout_width="2dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/vDivision"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/no_data"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -93,7 +144,7 @@
                 android:textSize="18sp" />
 
             <Space
-                android:layout_width="5dp"
+                android:layout_width="2dp"
                 android:layout_height="wrap_content" />
 
             <TextView
@@ -105,12 +156,6 @@
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/isSerial"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/is_serial"
-            android:textSize="18sp" />
 
     </LinearLayout>
 

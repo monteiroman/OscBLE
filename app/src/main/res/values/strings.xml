@@ -16,7 +16,7 @@
 <resources>
     <string name="app_name">OscBLE2</string>
     <string name="ble_not_supported">BLE is not supported</string>
-    <string name="label_data">Data:</string>
+    <string name="label_data">Data packets:  </string>
     <string name="label_device_address">Device address:</string>
     <string name="label_state">State:</string>
     <string name="no_data">No data</string>
@@ -44,4 +44,7 @@
     <string name="red_slide">Red</string>
     <string name="blue_slide">Blue</string>
     <string name="green_slide">Green</string>
+    <string name="label_tDivision">Seconds per division:</string>
+    <string name="label_vDivision">Volts per division:</string>
+
 </resources>
