@@ -57,11 +57,11 @@ public class DeviceControlActivity extends Activity {
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
-    private int[] RGBFrame = {0,0,0};
+    private int[] RGBFrame = {0, 0, 0};
     private TextView isSerial;
     private TextView mConnectionState;
     private TextView mDataField;
-    private SeekBar mRed,mGreen,mBlue;
+    private SeekBar mRed, mGreen, mBlue;
     private String mDeviceName;
     private String mDeviceAddress;
     //  private ExpandableListView mGattServicesList;
@@ -79,31 +79,30 @@ public class DeviceControlActivity extends Activity {
 
     private LineChart mChart;
     Typeface mTfLight;
-    
+
     String stringToShow = null;
 
 
     byte vDiv;
     byte tDiv;
 
-    static final int SUP=-1;
-    static final char SDN=245;
-    static final char SVD=243;
-    static final char STD=247;
+    static final int SUP = 255;
+    static final char SDN = 245;
+    static final char SVD = 243;
+    static final char STD = 247;
 
     char state = READ_HEADER;
-    static final char SUP_READ=0;
-    static final char SDN_READ=1;
-    static final char SVD_READ=2;
-    static final char STD_READ=3;
-    static final char READ_HEADER=4;
+    static final char SUP_READ = 0;
+    static final char SDN_READ = 1;
+    static final char SVD_READ = 2;
+    static final char STD_READ = 3;
+    static final char READ_HEADER = 4;
 
 
     StringBuilder recDataString = new StringBuilder();
 
-
-
-
+    int[] procData = new int[640];
+    int j = 0;
 
 
     // Code to manage Service lifecycle.
@@ -148,7 +147,7 @@ public class DeviceControlActivity extends Activity {
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
-                mBluetoothLeService.setCharacteristicNotification(characteristicRX,true);               //esta bien ahi?????????????????????????????????''
+                mBluetoothLeService.setCharacteristicNotification(characteristicRX, true);               //esta bien ahi?????????????????????????????????''
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 //displayData(intent.getStringExtra(mBluetoothLeService.EXTRA_DATA));
                 displayData(intent.getByteArrayExtra(mBluetoothLeService.EXTRA_DATA));
@@ -204,9 +203,8 @@ public class DeviceControlActivity extends Activity {
         mChart.getDescription().setEnabled(false);
 
         // enable touch gestures
-        mChart.setTouchEnabled(true);
-
-        mChart.setDragDecelerationFrictionCoef(0.9f);
+        mChart.setTouchEnabled(false);
+//        mChart.setDragDecelerationFrictionCoef(0.9f);
 
         //set borders
         mChart.setDrawBorders(true);
@@ -219,7 +217,6 @@ public class DeviceControlActivity extends Activity {
         //mChart.setScaleEnabled(true);
         mChart.setDrawGridBackground(true);
         mChart.setHighlightPerDragEnabled(true);
-
 
 
         // set an alternative background color
@@ -256,10 +253,10 @@ public class DeviceControlActivity extends Activity {
         leftAxis.setTypeface(mTfLight);
         leftAxis.setDrawGridLines(true);
         leftAxis.setDrawLabels(false);
+        leftAxis.setAxisMinimum(-250f);
+        leftAxis.setAxisMaximum(250f);
         leftAxis.setGranularityEnabled(true);
-        leftAxis.setGranularity(0.1f);
-        leftAxis.setAxisMinimum(-100f);
-        leftAxis.setAxisMaximum(100f);
+        leftAxis.setGranularity(1f);
 //        leftAxis.setYOffset(0f);
 //        leftAxis.setDrawAxisLine(true);
 //        leftAxis.setAxisLineWidth(2);
@@ -271,7 +268,6 @@ public class DeviceControlActivity extends Activity {
 
 
         /*_____________________________________________________________________*/
-
 
 
     }
@@ -314,7 +310,7 @@ public class DeviceControlActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.menu_connect:
                 mBluetoothLeService.connect(mDeviceAddress);
                 return true;
@@ -340,9 +336,7 @@ public class DeviceControlActivity extends Activity {
     private void displayData(byte[] data) {
 
 
-
         validateData(data);
-
 
 
     }
@@ -366,7 +360,11 @@ public class DeviceControlActivity extends Activity {
                     LIST_NAME, SampleGattAttributes.lookup(uuid, unknownServiceString));
 
             // If the service exists for HM 10 Serial, say so.
-            if(SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") { isSerial.setText("Yes, serial :-)"); } else {  isSerial.setText("No, serial :-("); }
+            if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
+                isSerial.setText("Yes, serial :-)");
+            } else {
+                isSerial.setText("No, serial :-(");
+            }
             currentServiceData.put(LIST_UUID, uuid);
             gattServiceData.add(currentServiceData);
 
@@ -387,12 +385,95 @@ public class DeviceControlActivity extends Activity {
     }
 
 
+    public void validateData(byte[] data) {
+
+        for (int i = 0; i < data.length; i++) {
+
+            int unsignedData = (int) data[i] & 0xFF;                                                //cast and bit multiplication for unsigned interpretation
+
+            switch (state) {
+
+                case READ_HEADER:
+
+                    if (unsignedData == SUP)
+                        state = SUP_READ;
+                    if (unsignedData == SDN)
+                        state = SDN_READ;
+                    if (unsignedData == SVD)
+                        state = SVD_READ;
+                    if (unsignedData == STD)
+                        state = STD_READ;
+
+                    break;
+
+                case SUP_READ:
+
+                    if (unsignedData < 241) {
+                        procData[j] = unsignedData;
+                        recDataString.append(unsignedData + ",");
+                        j++;
+                    }
+
+                    if (j == 640) {
+                        j = 0;
+                        setData(procData);
+                        mDataField.setText(recDataString);
+                        recDataString.delete(0, recDataString.length());                            //clear all string data
+                    }
+
+                    state = READ_HEADER;
+
+                    break;
+
+                case SDN_READ:
+
+                    if (unsignedData < 241) {
+                        procData[j] = -(240 - unsignedData);
+                        recDataString.append("-" + unsignedData + ",");
+                        j++;
+                    }
+                    if (j == 640) {
+                        j = 0;
+                        setData(procData);
+                        mDataField.setText(recDataString);
+                        recDataString.delete(0, recDataString.length());
+                    }
+
+                    state = READ_HEADER;
+
+                    break;
+
+                case SVD_READ:
+
+                    vDiv = (byte) unsignedData;
+
+                    state = READ_HEADER;
+
+                    break;
+
+                case STD_READ:
+
+                    tDiv = (byte) unsignedData;
+
+                    state = READ_HEADER;
+
+                    break;
+
+                default:
+
+                    state = READ_HEADER;
+
+                    break;
+            }
+        }
+    }
+
 
     public void setData(int[] inData) {
 
         ArrayList<Entry> values = new ArrayList<Entry>();
 
-        for(int i=0; i<inData.length; i++){
+        for (int i = 0; i < inData.length; i++) {
             values.add(new Entry(i, inData[i]));
         }
 
@@ -402,7 +483,7 @@ public class DeviceControlActivity extends Activity {
         set1.setColor(Color.rgb(255, 0, 0));
         set1.setValueTextColor(ColorTemplate.getHoloBlue());
         set1.setLineWidth(1.5f);
-        set1.setDrawCircles(true);
+        set1.setDrawCircles(false);
         set1.setDrawValues(false);
         set1.setFillAlpha(65);
         set1.setFillColor(ColorTemplate.getHoloBlue());
@@ -431,88 +512,7 @@ public class DeviceControlActivity extends Activity {
         mChart.invalidate();
 
     }
-
-
-
-    public void validateData (byte[] data) {
-
-        int[] procData = new int[640];
-        int j=0;
-
-
-        for(int i=0;i<data.length; i++) {
-            switch (state) {
-                case READ_HEADER:
-
-                    if (data[i] == SUP)
-                        state = SUP_READ;
-                    if (data[i] == SDN)
-                        state = SDN_READ;
-                    if (data[i] == SVD)
-                        state = SVD_READ;
-                    if (data[i] == STD)
-                        state = STD_READ;
-
-                    break;
-
-                case SUP_READ:
-
-                    if (data[i] < 241) {
-                        procData[j] = data[i];
-                        recDataString.append(data[i]);
-                        j++;
-                    }
-
-                    if( j == 640 ){
-                        j=0;
-                        setData(procData);
-                        mDataField.setText(recDataString);
-                    }
-
-                    state = READ_HEADER;
-
-                    break;
-
-                case SDN_READ:
-
-                    if (data[i] < 241) {
-                        procData[j] = (-1)*data[i];
-                        recDataString.append(data[i]);
-                        j++;
-                    }
-                    if( j == 640 ){
-                        j=0;
-                        setData(procData);
-                        mDataField.setText(recDataString);
-                    }
-
-                    state = READ_HEADER;
-
-                    break;
-
-                case SVD_READ:
-
-                    vDiv = data[i];
-
-                    state = READ_HEADER;
-
-                    break;
-
-                case STD_READ:
-
-                    tDiv = data[i];
-
-                    state = READ_HEADER;
-
-                    break;
-
-                default:
-
-                    state = READ_HEADER;
-
-                    break;
-            }
-        }
-    }
-
 }
+
+
+
