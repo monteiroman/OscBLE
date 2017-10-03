@@ -232,15 +232,16 @@ public class DeviceControlActivity extends Activity {
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM_INSIDE);
         xAxis.setTypeface(mTfLight);
         xAxis.setTextSize(10f);
-//        xAxis.setXOffset(50f);
+//        xAxis.setXOffset(5000f);
 //        xAxis.setDrawAxisLine(true);
-//        xAxis.setAxisLineWidth(2);
+//        xAxis.setAxisLineWidth(20);
 //        xAxis.setAxisLineColor(Color.rgb(0, 255, 0));
         xAxis.setDrawGridLines(true);
         xAxis.setTextColor(Color.rgb(0, 0, 0));
         xAxis.setDrawLabels(false);
-        xAxis.setCenterAxisLabels(false);
-        xAxis.setGranularity(1f); // one hour
+        xAxis.setCenterAxisLabels(true);
+        xAxis.setGranularityEnabled(true);
+        xAxis.setGranularity(106.6667f);
         xAxis.setAxisMaximum(640);
         xAxis.setAxisMinimum(0);
 
@@ -253,7 +254,7 @@ public class DeviceControlActivity extends Activity {
         leftAxis.setAxisMinimum(-250f);
         leftAxis.setAxisMaximum(250f);
         leftAxis.setGranularityEnabled(true);
-        leftAxis.setGranularity(1f);
+        leftAxis.setGranularity(125f);
 //        leftAxis.setYOffset(0f);
 //        leftAxis.setDrawAxisLine(true);
 //        leftAxis.setAxisLineWidth(2);
