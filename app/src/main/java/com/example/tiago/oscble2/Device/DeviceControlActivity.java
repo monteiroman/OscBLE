@@ -429,7 +429,8 @@ public class DeviceControlActivity extends Activity {
                 case SDN_READ:
 
                     if (unsignedData < 241) {
-                        procData[j] = -(240 - unsignedData);
+                        procData[j] = -(unsignedData);
+//                        procData[j] = -(240 - unsignedData);
 //                        recDataString.append("-" + unsignedData + ",");
                         j++;
                     }
