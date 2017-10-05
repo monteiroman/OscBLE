@@ -26,6 +26,7 @@ import android.widget.TextView;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -96,6 +97,9 @@ public class DeviceControlActivity extends Activity {
     static final char SVD_READ = 2;
     static final char STD_READ = 3;
     static final char READ_HEADER = 4;
+
+    List<String> vDivArray = Arrays.asList("0v", "10mV", "100mV", "1V", "10V");
+    List<String> tDivArray = Arrays.asList("0s", "10uS", "100uV", "1mS", "10mS");
 
 
     StringBuilder recDataString = new StringBuilder();
@@ -448,7 +452,7 @@ public class DeviceControlActivity extends Activity {
                 case SVD_READ:
 
                     vDiv = (byte) unsignedData;
-                    mVDivision.setText(String.valueOf(vDiv));
+                    mVDivision.setText(vDivArray.get(vDiv));
 
                     state = READ_HEADER;
 
@@ -457,7 +461,7 @@ public class DeviceControlActivity extends Activity {
                 case STD_READ:
 
                     tDiv = (byte) unsignedData;
-                    mTDivision.setText(String.valueOf(tDiv));
+                    mTDivision.setText(tDivArray.get(tDiv));
 
                     state = READ_HEADER;
 

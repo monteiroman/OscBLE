@@ -44,7 +44,7 @@
     <string name="red_slide">Red</string>
     <string name="blue_slide">Blue</string>
     <string name="green_slide">Green</string>
-    <string name="label_tDivision">Seconds per division:</string>
-    <string name="label_vDivision">Volts per division:</string>
+    <string name="label_tDivision">T/Div:</string>
+    <string name="label_vDivision">V/Div:</string>
 
 </resources>
