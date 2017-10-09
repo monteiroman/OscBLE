@@ -157,6 +157,14 @@
 
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/ts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/no_data"
+            android:gravity="center"
+            android:textSize="18sp" />
+
 
     </LinearLayout>
 

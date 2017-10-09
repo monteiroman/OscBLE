@@ -64,6 +64,7 @@ public class DeviceControlActivity extends Activity {
     private TextView mDataField;
     private TextView mTDivision;
     private TextView mVDivision;
+    private TextView mTs;
     private SeekBar mRed, mGreen, mBlue;
     private String mDeviceName;
     private String mDeviceAddress;
@@ -100,6 +101,8 @@ public class DeviceControlActivity extends Activity {
 
     List<String> vDivArray = Arrays.asList("0v", "10mV", "100mV", "1V", "10V");
     List<String> tDivArray = Arrays.asList("0s", "10uS", "100uV", "1mS", "10mS");
+
+    Long tsLong, tsLongPrev, tsLongShow;
 
 
     StringBuilder recDataString = new StringBuilder();
@@ -181,6 +184,8 @@ public class DeviceControlActivity extends Activity {
         mConnectionState = (TextView) findViewById(R.id.connection_state);
         mTDivision = (TextView) findViewById(R.id.tDivision);
         mVDivision = (TextView) findViewById(R.id.vDivision);
+        mTs = (TextView) findViewById(R.id.ts);
+        tsLongPrev = System.currentTimeMillis()/1000;
 
         // is serial present?
 //        isSerial = (TextView) findViewById(R.id.isSerial);
@@ -479,6 +484,19 @@ public class DeviceControlActivity extends Activity {
 
     public void setData(int[] inData) {
 
+
+        /*_____________________________________________________________*/
+        //for debugging, second between receptions counter
+        tsLong = System.currentTimeMillis();
+        tsLongShow = tsLong - tsLongPrev;
+        String ts = tsLongShow.toString();
+
+        mTs.setText(ts+" mS");
+
+        tsLongPrev = tsLong;
+        /*_____________________________________________________________*/
+
+
         ArrayList<Entry> values = new ArrayList<Entry>();
         dataPckRec++;
         mDataField.setText(String.valueOf(dataPckRec));
@@ -486,6 +504,7 @@ public class DeviceControlActivity extends Activity {
         for (int i = 0; i < inData.length; i++) {
             values.add(new Entry(i, inData[i]));
         }
+
 
         // create a dataset and give it a type
         LineDataSet set1 = new LineDataSet(values, "DataSet 1");
