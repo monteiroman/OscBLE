@@ -457,7 +457,9 @@ public class DeviceControlActivity extends Activity {
                 case SVD_READ:
 
                     vDiv = (byte) unsignedData;
-                    mVDivision.setText(vDivArray.get(vDiv));
+
+                    if(vDiv<5 && vDiv>=0)
+                        mVDivision.setText(vDivArray.get(vDiv));
 
                     state = READ_HEADER;
 
@@ -466,7 +468,9 @@ public class DeviceControlActivity extends Activity {
                 case STD_READ:
 
                     tDiv = (byte) unsignedData;
-                    mTDivision.setText(tDivArray.get(tDiv));
+
+                    if(tDiv<5 && tDiv>=0)
+                        mTDivision.setText(tDivArray.get(tDiv));
 
                     state = READ_HEADER;
 
