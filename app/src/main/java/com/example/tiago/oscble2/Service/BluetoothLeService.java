@@ -24,6 +24,7 @@ import android.util.Log;
 import com.example.tiago.oscble2.SampleGattAttributes;
 
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,6 +46,35 @@ public class BluetoothLeService extends Service {
 
 
 
+
+
+    int[] procData = new int[643];
+    static final int SUP = 255;
+    static final char SDN = 245;
+    static final char SVD = 243;
+    static final char STD = 247;
+
+    char state = READ_HEADER;
+    static final char SUP_READ = 0;
+    static final char SDN_READ = 1;
+    static final char SVD_READ = 2;
+    static final char STD_READ = 3;
+    static final char READ_HEADER = 4;
+
+    List<String> vDivArray = Arrays.asList("0v", "10mV", "100mV", "1V", "10V");
+    List<String> tDivArray = Arrays.asList("0s", "10uS", "100uV", "1mS", "10mS");
+
+    int j = 0;
+
+    byte aux;
+
+    String mVDivision, mTDivision;
+
+
+
+
+
+
     public final static String ACTION_GATT_CONNECTED =
             "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
     public final static String ACTION_GATT_DISCONNECTED =
@@ -55,6 +85,10 @@ public class BluetoothLeService extends Service {
             "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA =
             "com.example.bluetooth.le.EXTRA_DATA";
+    public final static String EXTRA_DATA_tDiv =
+            "com.example.bluetooth.le.EXTRA_DATA_tDiv";
+    public final static String EXTRA_DATA_vDiv =
+            "com.example.bluetooth.le.EXTRA_DATA_vDiv";
     public final static UUID UUID_HM_RX_TX =
             UUID.fromString(SampleGattAttributes.HM_RX_TX);
 
@@ -127,10 +161,83 @@ public class BluetoothLeService extends Service {
             // getting cut off when longer, need to push on new line, 0A
             intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));*/
 
-            intent.putExtra(EXTRA_DATA,data);
-            sendBroadcast(intent);
-        }
+            //intent.putExtra(EXTRA_DATA,data);
+            //sendBroadcast(intent);
 
+            validateData(action, data);
+        }
+    }
+
+    public void validateData(final String action, byte[] data) {
+
+        final Intent intent = new Intent(action);
+
+        for (int i = 0; i < data.length; i++) {
+
+            int unsignedData = (int) data[i] & 0xFF;                                                //cast and bit multiplication for unsigned interpretation
+            procData[642]++;
+
+            switch (state) {
+
+                case READ_HEADER:
+                    if (unsignedData == SUP)
+                        state = SUP_READ;
+                    if (unsignedData == SDN)
+                        state = SDN_READ;
+                    if (unsignedData == SVD)
+                        state = SVD_READ;
+                    if (unsignedData == STD)
+                        state = STD_READ;
+                    break;
+
+                case SUP_READ:
+                    if (unsignedData < 241 && unsignedData >= 0) {
+                        procData[j] = unsignedData;
+                        j++;
+
+                        if (j == 640) {
+                            j = 0;
+                            intent.putExtra(EXTRA_DATA,procData);
+                            sendBroadcast(intent);
+                            procData[642] = 0;
+                        }
+                    }
+                    state = READ_HEADER;
+                    break;
+
+                case SDN_READ:
+                    if (unsignedData < 241 && unsignedData >= 0) {
+                        procData[j] = -(unsignedData);
+                        j++;
+                        if (j == 640) {
+                            j = 0;
+                            intent.putExtra(EXTRA_DATA,procData);
+                            sendBroadcast(intent);
+                            procData[642] = 0;;
+                        }
+                    }
+                    state = READ_HEADER;
+                    break;
+
+                case SVD_READ:
+                    aux = (byte) unsignedData;
+                    if(aux<5 && aux>=0)
+                        procData[640] = (int) aux;
+                    state = READ_HEADER;
+                    break;
+
+                case STD_READ:
+                    aux = (byte) unsignedData;
+                    if(aux<5 && aux>=0)
+                        procData[641] = (int) aux;
+                    state = READ_HEADER;
+                    break;
+
+                default:
+                    state = READ_HEADER;
+                    break;
+            }
+        }
     }
 
     public class LocalBinder extends Binder {

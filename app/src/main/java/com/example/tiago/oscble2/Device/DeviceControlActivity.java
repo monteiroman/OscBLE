@@ -24,7 +24,6 @@ import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,8 +31,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
-
-import android.widget.SeekBar;
 
 import com.example.tiago.oscble2.Service.BluetoothLeService;
 import com.example.tiago.oscble2.R;
@@ -60,14 +57,11 @@ public class DeviceControlActivity extends Activity {
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
-    private int[] RGBFrame = {0, 0, 0};
-    private TextView isSerial;
     private TextView mConnectionState;
     private TextView mDataField;
     private TextView mTDivision;
     private TextView mVDivision;
 
-    private SeekBar mRed, mGreen, mBlue;
     private String mDeviceName;
     private String mDeviceAddress;
     //  private ExpandableListView mGattServicesList;
@@ -86,31 +80,11 @@ public class DeviceControlActivity extends Activity {
     private LineChart mChart;
     Typeface mTfLight;
 
-    byte vDiv;
-    byte tDiv;
-
-    static final int SUP = 255;
-    static final char SDN = 245;
-    static final char SVD = 243;
-    static final char STD = 247;
-
-    char state = READ_HEADER;
-    static final char SUP_READ = 0;
-    static final char SDN_READ = 1;
-    static final char SVD_READ = 2;
-    static final char STD_READ = 3;
-    static final char READ_HEADER = 4;
-
     List<String> vDivArray = Arrays.asList("0v", "10mV", "100mV", "1V", "10V");
-    List<String> tDivArray = Arrays.asList("0s", "10uS", "100uV", "1mS", "10mS");
+    List<String> tDivArray = Arrays.asList("0s", "10uS", "100uS", "1mS", "10mS");
 
-
-
-
-    StringBuilder recDataString = new StringBuilder();
-
-    int[] procData = new int[640];
-    int j = 0, dataPckRec = 0;
+    int[] procData = new int[643];
+    int dataPckRec = 0;
 
 /*______________________________________DEBUGGING VARIABLES_____________________________________________________________*/
     Long tsLong, tsLongPrev, tsLongShow;
@@ -165,8 +139,9 @@ public class DeviceControlActivity extends Activity {
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
                 mBluetoothLeService.setCharacteristicNotification(characteristicRX, true);               //esta bien ahi?????????????????????????????????''
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                //displayData(intent.getStringExtra(mBluetoothLeService.EXTRA_DATA));
-                displayData(intent.getByteArrayExtra(mBluetoothLeService.EXTRA_DATA));
+                displayData(intent.getIntArrayExtra(mBluetoothLeService.EXTRA_DATA));
+
+                dataPckRec++;
             }
         }
     };
@@ -189,7 +164,6 @@ public class DeviceControlActivity extends Activity {
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
         // Sets up UI references.
-        ((TextView) findViewById(R.id.device_address)).setText(mDeviceAddress);
         mConnectionState = (TextView) findViewById(R.id.connection_state);
         mTDivision = (TextView) findViewById(R.id.tDivision);
         mVDivision = (TextView) findViewById(R.id.vDivision);
@@ -204,12 +178,6 @@ public class DeviceControlActivity extends Activity {
         dataLoss = (TextView) findViewById(R.id.dl);
 
 /*______________________________________________________________________________________________________________________*/
-
-        // is serial present?
-//        isSerial = (TextView) findViewById(R.id.isSerial);
-
-
-
 
         getActionBar().setTitle(mDeviceName);
         getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -363,12 +331,14 @@ public class DeviceControlActivity extends Activity {
         });
     }
 
-    private void displayData(byte[] data) {
 
-        validateData(data);
+    private void displayData(int[] data) {
+
+        procData = data;
+        mVDivision.setText(vDivArray.get(data[640]));
+        mTDivision.setText(tDivArray.get(data[641]));
 
     }
-
 
     // Demonstrates how to iterate through the supported GATT Services/Characteristics.
     // In this sample, we populate the data structure that is bound to the ExpandableListView
@@ -387,12 +357,6 @@ public class DeviceControlActivity extends Activity {
             currentServiceData.put(
                     LIST_NAME, SampleGattAttributes.lookup(uuid, unknownServiceString));
 
-            // If the service exists for HM 10 Serial, say so.
- /*           if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
-                isSerial.setText("Yes, serial :-)");
-            } else {
-                isSerial.setText("No, serial :-(");
-            }*/
             currentServiceData.put(LIST_UUID, uuid);
             gattServiceData.add(currentServiceData);
 
@@ -412,103 +376,6 @@ public class DeviceControlActivity extends Activity {
         return intentFilter;
     }
 
-
-    public void validateData(byte[] data) {
-
-
-        for (int i = 0; i < data.length; i++) {
-
-            receivedDataLength++;
-
-            int unsignedData = (int) data[i] & 0xFF;                                                //cast and bit multiplication for unsigned interpretation
-
-            switch (state) {
-
-                case READ_HEADER:
-
-                    if (unsignedData == SUP)
-                        state = SUP_READ;
-                    if (unsignedData == SDN)
-                        state = SDN_READ;
-                    if (unsignedData == SVD)
-                        state = SVD_READ;
-                    if (unsignedData == STD)
-                        state = STD_READ;
-
-                    break;
-
-                case SUP_READ:
-
-                    if (unsignedData < 241) {
-                        procData[j] = unsignedData;
-//                        recDataString.append(unsignedData + ",");
-                        j++;
-                    }
-
-                    if (j == 640) {
-                        j = 0;
-                        dataPckRec++;
-  //                      setData(procData);
-//                        mDataField.setText(recDataString);
-//                        recDataString.delete(0, recDataString.length());                            //clear all string data
-                    }
-
-                    state = READ_HEADER;
-
-                    break;
-
-                case SDN_READ:
-
-                    if (unsignedData < 241) {
-                        procData[j] = -(unsignedData);
-//                        procData[j] = -(240 - unsignedData);
-//                        recDataString.append("-" + unsignedData + ",");
-                        j++;
-                    }
-                    if (j == 640) {
-                        j = 0;
-                        dataPckRec++;
- //                       setData(procData);
-//                        mDataField.setText(recDataString);
-//                        recDataString.delete(0, recDataString.length());
-                    }
-
-                    state = READ_HEADER;
-
-                    break;
-
-                case SVD_READ:
-
-                    vDiv = (byte) unsignedData;
-
-                    if(vDiv<5 && vDiv>=0)
-                        mVDivision.setText(vDivArray.get(vDiv));
-
-                    state = READ_HEADER;
-
-                    break;
-
-                case STD_READ:
-
-                    tDiv = (byte) unsignedData;
-
-                    if(tDiv<5 && tDiv>=0)
-                        mTDivision.setText(tDivArray.get(tDiv));
-
-                    state = READ_HEADER;
-
-                    break;
-
-                default:
-
-                    state = READ_HEADER;
-
-                    break;
-            }
-        }
-    }
-
-
     //Runs the chart display one time per second
     private void updateChart() {
         Timer timer = new Timer();
@@ -527,10 +394,8 @@ public class DeviceControlActivity extends Activity {
                     }
                 });
             }
-        },0,500);
+        },0,100);
     }
-
-
 
     public void setData(int[] inData) {
         /*_____________________________________________________________*/
@@ -543,7 +408,8 @@ public class DeviceControlActivity extends Activity {
 
         tsLongPrev = tsLong;
 
-        float v = ((receivedDataLength/1284)-1)*100;
+        float bytesReceived =  inData[642];
+        float v = ((bytesReceived/1284)-1)*100;
         dataLoss.setText(String.valueOf(v));
         receivedDataLength = 0;
 
@@ -594,7 +460,6 @@ public class DeviceControlActivity extends Activity {
         }
 */
         mChart.invalidate();
-
     }
 }
 
