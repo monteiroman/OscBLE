@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 import android.widget.SeekBar;
@@ -64,7 +66,7 @@ public class DeviceControlActivity extends Activity {
     private TextView mDataField;
     private TextView mTDivision;
     private TextView mVDivision;
-    private TextView mTs;
+
     private SeekBar mRed, mGreen, mBlue;
     private String mDeviceName;
     private String mDeviceAddress;
@@ -102,7 +104,7 @@ public class DeviceControlActivity extends Activity {
     List<String> vDivArray = Arrays.asList("0v", "10mV", "100mV", "1V", "10V");
     List<String> tDivArray = Arrays.asList("0s", "10uS", "100uV", "1mS", "10mS");
 
-    Long tsLong, tsLongPrev, tsLongShow;
+
 
 
     StringBuilder recDataString = new StringBuilder();
@@ -110,7 +112,14 @@ public class DeviceControlActivity extends Activity {
     int[] procData = new int[640];
     int j = 0, dataPckRec = 0;
 
+/*______________________________________DEBUGGING VARIABLES_____________________________________________________________*/
+    Long tsLong, tsLongPrev, tsLongShow;
+    private TextView mTs;
 
+    float receivedDataLength = 0;
+    private TextView dataLoss;
+
+/*______________________________________________________________________________________________________________________*/
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -184,13 +193,22 @@ public class DeviceControlActivity extends Activity {
         mConnectionState = (TextView) findViewById(R.id.connection_state);
         mTDivision = (TextView) findViewById(R.id.tDivision);
         mVDivision = (TextView) findViewById(R.id.vDivision);
-        mTs = (TextView) findViewById(R.id.ts);
+
         tsLongPrev = System.currentTimeMillis()/1000;
+
+
+
+/*______________________________________DEBUGGING VARIABLES_____________________________________________________________*/
+        mTs = (TextView) findViewById(R.id.ts);
+        mDataField = (TextView) findViewById(R.id.data_value);
+        dataLoss = (TextView) findViewById(R.id.dl);
+
+/*______________________________________________________________________________________________________________________*/
 
         // is serial present?
 //        isSerial = (TextView) findViewById(R.id.isSerial);
 
-        mDataField = (TextView) findViewById(R.id.data_value);
+
 
 
         getActionBar().setTitle(mDeviceName);
@@ -276,7 +294,7 @@ public class DeviceControlActivity extends Activity {
 
         /*_____________________________________________________________________*/
 
-
+        updateChart();
     }
 
     @Override
@@ -397,7 +415,10 @@ public class DeviceControlActivity extends Activity {
 
     public void validateData(byte[] data) {
 
+
         for (int i = 0; i < data.length; i++) {
+
+            receivedDataLength++;
 
             int unsignedData = (int) data[i] & 0xFF;                                                //cast and bit multiplication for unsigned interpretation
 
@@ -426,7 +447,8 @@ public class DeviceControlActivity extends Activity {
 
                     if (j == 640) {
                         j = 0;
-                        setData(procData);
+                        dataPckRec++;
+  //                      setData(procData);
 //                        mDataField.setText(recDataString);
 //                        recDataString.delete(0, recDataString.length());                            //clear all string data
                     }
@@ -445,7 +467,8 @@ public class DeviceControlActivity extends Activity {
                     }
                     if (j == 640) {
                         j = 0;
-                        setData(procData);
+                        dataPckRec++;
+ //                       setData(procData);
 //                        mDataField.setText(recDataString);
 //                        recDataString.delete(0, recDataString.length());
                     }
@@ -486,9 +509,30 @@ public class DeviceControlActivity extends Activity {
     }
 
 
+    //Runs the chart display one time per second
+    private void updateChart() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+
+                //allows to draw in the main ui activity
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        setData(procData);
+
+                    }
+                });
+            }
+        },0,500);
+    }
+
+
+
     public void setData(int[] inData) {
-
-
         /*_____________________________________________________________*/
         //for debugging, second between receptions counter
         tsLong = System.currentTimeMillis();
@@ -498,12 +542,19 @@ public class DeviceControlActivity extends Activity {
         mTs.setText(ts+" mS");
 
         tsLongPrev = tsLong;
+
+        float v = ((receivedDataLength/1284)-1)*100;
+        dataLoss.setText(String.valueOf(v));
+        receivedDataLength = 0;
+
+
+        mDataField.setText(String.valueOf(dataPckRec));
+
         /*_____________________________________________________________*/
 
 
         ArrayList<Entry> values = new ArrayList<Entry>();
-        dataPckRec++;
-        mDataField.setText(String.valueOf(dataPckRec));
+
 
         for (int i = 0; i < inData.length; i++) {
             values.add(new Entry(i, inData[i]));
