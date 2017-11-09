@@ -45,14 +45,12 @@ public class BluetoothLeService extends Service {
     private static final int STATE_CONNECTED = 2;
 
 
-
-
-
     int[] procData = new int[643];
     static final int SUP = 255;
     static final char SDN = 245;
     static final char SVD = 243;
     static final char STD = 247;
+    static final char PIN = 246;
 
     char state = READ_HEADER;
     static final char SUP_READ = 0;
@@ -60,6 +58,7 @@ public class BluetoothLeService extends Service {
     static final char SVD_READ = 2;
     static final char STD_READ = 3;
     static final char READ_HEADER = 4;
+    static final char PACKET_INIT = 5;
 
     List<String> vDivArray = Arrays.asList("0v", "10mV", "100mV", "1V", "10V");
     List<String> tDivArray = Arrays.asList("0s", "10uS", "100uV", "1mS", "10mS");
@@ -172,6 +171,7 @@ public class BluetoothLeService extends Service {
 
         final Intent intent = new Intent(action);
 
+
         for (int i = 0; i < data.length; i++) {
 
             int unsignedData = (int) data[i] & 0xFF;                                                //cast and bit multiplication for unsigned interpretation
@@ -188,19 +188,22 @@ public class BluetoothLeService extends Service {
                         state = SVD_READ;
                     if (unsignedData == STD)
                         state = STD_READ;
+                    if (unsignedData == PIN)
+                        state = PACKET_INIT;
                     break;
 
                 case SUP_READ:
                     if (unsignedData < 241 && unsignedData >= 0) {
                         procData[j] = unsignedData;
-                        j++;
-
+                        if(j<640)
+                            j++;
+/*
                         if (j == 640) {
                             j = 0;
                             intent.putExtra(EXTRA_DATA,procData);
                             sendBroadcast(intent);
                             procData[642] = 0;
-                        }
+                        }*/
                     }
                     state = READ_HEADER;
                     break;
@@ -208,13 +211,15 @@ public class BluetoothLeService extends Service {
                 case SDN_READ:
                     if (unsignedData < 241 && unsignedData >= 0) {
                         procData[j] = -(unsignedData);
-                        j++;
+                        if(j<640)
+                            j++;
+                        /*
                         if (j == 640) {
                             j = 0;
                             intent.putExtra(EXTRA_DATA,procData);
                             sendBroadcast(intent);
-                            procData[642] = 0;;
-                        }
+                            procData[642] = 0;
+                        }*/
                     }
                     state = READ_HEADER;
                     break;
@@ -230,6 +235,14 @@ public class BluetoothLeService extends Service {
                     aux = (byte) unsignedData;
                     if(aux<5 && aux>=0)
                         procData[641] = (int) aux;
+                    state = READ_HEADER;
+                    break;
+
+                case PACKET_INIT:
+                    j=0;
+                    intent.putExtra(EXTRA_DATA,procData);
+                    sendBroadcast(intent);
+                    procData[642] = 0;
                     state = READ_HEADER;
                     break;
 

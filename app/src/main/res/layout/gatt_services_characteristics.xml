@@ -23,7 +23,7 @@
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/chart1"
-        android:layout_width="100dp"
+        android:layout_width="170dp"
         android:layout_height="match_parent"
         android:layout_weight="0.72" />
 
@@ -136,7 +136,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -153,6 +153,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/no_data"
+                android:gravity="center"
                 android:textSize="18sp" />
 
         </LinearLayout>
@@ -188,7 +189,33 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            android:orientation="vertical">
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SpP:"
+                android:textSize="18sp" />
+
+            <Space
+                android:layout_width="2dp"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/sbp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/no_data"
+                android:gravity="center"
+                android:textSize="18sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"

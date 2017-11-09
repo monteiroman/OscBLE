@@ -87,11 +87,13 @@ public class DeviceControlActivity extends Activity {
     int dataPckRec = 0;
 
 /*______________________________________DEBUGGING VARIABLES_____________________________________________________________*/
-    Long tsLong, tsLongPrev, tsLongShow;
+    Long tsLong, tsLongPrev, tsLongShow, tsLong1, tsLongPrev1, tsLongShow1;
     private TextView mTs;
 
     float receivedDataLength = 0;
     private TextView dataLoss;
+
+    private TextView fps;
 
 /*______________________________________________________________________________________________________________________*/
 
@@ -140,14 +142,12 @@ public class DeviceControlActivity extends Activity {
                 mBluetoothLeService.setCharacteristicNotification(characteristicRX, true);               //esta bien ahi?????????????????????????????????''
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 displayData(intent.getIntArrayExtra(mBluetoothLeService.EXTRA_DATA));
-
-                dataPckRec++;
             }
         }
     };
 
     private void clearUI() {
-        mDataField.setText(R.string.no_data);
+        //mDataField.setText(R.string.no_data);
     }
 
     @Override
@@ -168,14 +168,17 @@ public class DeviceControlActivity extends Activity {
         mTDivision = (TextView) findViewById(R.id.tDivision);
         mVDivision = (TextView) findViewById(R.id.vDivision);
 
-        tsLongPrev = System.currentTimeMillis()/1000;
+
 
 
 
 /*______________________________________DEBUGGING VARIABLES_____________________________________________________________*/
+        tsLongPrev = System.currentTimeMillis()/1000;
+        tsLongPrev1 = System.currentTimeMillis()/1000;
         mTs = (TextView) findViewById(R.id.ts);
         mDataField = (TextView) findViewById(R.id.data_value);
         dataLoss = (TextView) findViewById(R.id.dl);
+        fps = (TextView) findViewById(R.id.sbp);
 
 /*______________________________________________________________________________________________________________________*/
 
@@ -237,7 +240,7 @@ public class DeviceControlActivity extends Activity {
         xAxis.setCenterAxisLabels(true);
         xAxis.setGranularityEnabled(true);
         xAxis.setGranularity(106.6667f);
-        xAxis.setAxisMaximum(640);
+        xAxis.setAxisMaximum(639);
         xAxis.setAxisMinimum(0);
 
 
@@ -334,9 +337,31 @@ public class DeviceControlActivity extends Activity {
 
     private void displayData(int[] data) {
 
+        //-----------------------------------------
+        // Data array:
+        // from 0 to 639 -> Measured data
+        // 640 -> volts per division
+        // 641 -> seconds per division
+        // 642 -> Bytes received
+        //-----------------------------------------
+
         procData = data;
         mVDivision.setText(vDivArray.get(data[640]));
         mTDivision.setText(tDivArray.get(data[641]));
+
+        /*_____________________________________________________________*/
+        //for debugging, time per frames
+        tsLong1 = System.currentTimeMillis();
+        tsLongShow1 = tsLong1 - tsLongPrev1;
+
+        fps.setText(tsLongShow1 + "mS");
+
+        tsLongPrev1 = tsLong1;
+
+        dataPckRec++;
+        mDataField.setText(String.valueOf(dataPckRec));
+
+        /*_____________________________________________________________*/
 
     }
 
@@ -399,7 +424,7 @@ public class DeviceControlActivity extends Activity {
 
     public void setData(int[] inData) {
         /*_____________________________________________________________*/
-        //for debugging, second between receptions counter
+        //for debugging, time per frames
         tsLong = System.currentTimeMillis();
         tsLongShow = tsLong - tsLongPrev;
         String ts = tsLongShow.toString();
@@ -409,12 +434,11 @@ public class DeviceControlActivity extends Activity {
         tsLongPrev = tsLong;
 
         float bytesReceived =  inData[642];
-        float v = ((bytesReceived/1284)-1)*100;
+        float v = ((bytesReceived/1285)-1)*100;
         dataLoss.setText(String.valueOf(v));
         receivedDataLength = 0;
 
 
-        mDataField.setText(String.valueOf(dataPckRec));
 
         /*_____________________________________________________________*/
 
