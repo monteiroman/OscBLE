@@ -21,11 +21,15 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
@@ -46,13 +50,15 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
 
+
+
 /**
  * For a given BLE device, this Activity provides the user interface to connect, display data,
  * and display GATT services and characteristics supported by the device.  The Activity
  * communicates with {@code BluetoothLeService}, which in turn interacts with the
  * Bluetooth LE API.
  */
-public class DeviceControlActivity extends Activity {
+public class DeviceControlActivity extends Activity implements View.OnClickListener {
     private final static String TAG = DeviceControlActivity.class.getSimpleName();
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
@@ -80,13 +86,17 @@ public class DeviceControlActivity extends Activity {
     private LineChart mChart;
     Typeface mTfLight;
 
-    List<String> vDivArray = Arrays.asList("0v", "10mV", "100mV", "1V", "10V");
-    List<String> tDivArray = Arrays.asList("0s", "10uS", "100uS", "1mS", "10mS");
+    List<String> vDivArray = Arrays.asList("825m", "8.25", "82.5");
+    List<String> tDivArray = Arrays.asList("1.67mS", "3.33mS", "8.33mS", "16.67mS", "33.33mS", "83.33mS", "166.67mS");
 
     int[] procData = new int[643];
     int dataPckRec = 0;
 
-/*______________________________________DEBUGGING VARIABLES_____________________________________________________________*/
+
+    Button btnPrueba;
+   // byte[] dataSend = new byte[2];
+
+    /*______________________________________DEBUGGING VARIABLES_____________________________________________________________*/
     Long tsLong, tsLongPrev, tsLongShow, tsLong1, tsLongPrev1, tsLongShow1;
     private TextView mTs;
 
@@ -95,7 +105,7 @@ public class DeviceControlActivity extends Activity {
 
     private TextView fps;
 
-/*______________________________________________________________________________________________________________________*/
+    /*______________________________________________________________________________________________________________________*/
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -168,17 +178,13 @@ public class DeviceControlActivity extends Activity {
         mTDivision = (TextView) findViewById(R.id.tDivision);
         mVDivision = (TextView) findViewById(R.id.vDivision);
 
-
-
-
-
 /*______________________________________DEBUGGING VARIABLES_____________________________________________________________*/
-        tsLongPrev = System.currentTimeMillis()/1000;
-        tsLongPrev1 = System.currentTimeMillis()/1000;
-        mTs = (TextView) findViewById(R.id.ts);
+        tsLongPrev = System.currentTimeMillis() / 1000;
+        tsLongPrev1 = System.currentTimeMillis() / 1000;
+        //mTs = (TextView) findViewById(R.id.ts);
         mDataField = (TextView) findViewById(R.id.data_value);
-        dataLoss = (TextView) findViewById(R.id.dl);
-        fps = (TextView) findViewById(R.id.sbp);
+        //dataLoss = (TextView) findViewById(R.id.dl);
+        //fps = (TextView) findViewById(R.id.sbp);
 
 /*______________________________________________________________________________________________________________________*/
 
@@ -265,7 +271,10 @@ public class DeviceControlActivity extends Activity {
 
         /*_____________________________________________________________________*/
 
+        setupWidgets();
+
         updateChart();
+
     }
 
     @Override
@@ -325,9 +334,9 @@ public class DeviceControlActivity extends Activity {
             @Override
             public void run() {
                 mConnectionState.setText(resourceId);
-                if( resourceId == R.string.connected ){
+                if (resourceId == R.string.connected) {
                     mConnectionState.setTextColor(Color.parseColor("#27AE60"));
-                }else{
+                } else {
                     mConnectionState.setTextColor(Color.parseColor("#E74C3C"));
                 }
             }
@@ -354,7 +363,7 @@ public class DeviceControlActivity extends Activity {
         tsLong1 = System.currentTimeMillis();
         tsLongShow1 = tsLong1 - tsLongPrev1;
 
-        fps.setText(tsLongShow1 + "mS");
+//        fps.setText(tsLongShow1 + "mS");
 
         tsLongPrev1 = tsLong1;
 
@@ -408,18 +417,15 @@ public class DeviceControlActivity extends Activity {
 
             @Override
             public void run() {
-
                 //allows to draw in the main ui activity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
                         setData(procData);
-
                     }
                 });
             }
-        },0,100);
+        }, 0, 100);
     }
 
     public void setData(int[] inData) {
@@ -429,13 +435,13 @@ public class DeviceControlActivity extends Activity {
         tsLongShow = tsLong - tsLongPrev;
         String ts = tsLongShow.toString();
 
-        mTs.setText(ts+" mS");
+//        mTs.setText(ts + " mS");
 
         tsLongPrev = tsLong;
 
-        float bytesReceived =  inData[642];
-        float v = ((bytesReceived/1285)-1)*100;
-        dataLoss.setText(String.valueOf(v));
+        float bytesReceived = inData[642];
+        float v = ((bytesReceived / 1285) - 1) * 100;
+//        dataLoss.setText(String.valueOf(v));
         receivedDataLength = 0;
 
 
@@ -485,7 +491,107 @@ public class DeviceControlActivity extends Activity {
 */
         mChart.invalidate();
     }
+
+    private void writeBt (byte data) {
+        //-----------------------------------------
+        // Send array:
+        // 0 -> sets Probe sellection (100=X1, 101=X10, 102=X100)
+        // 1 -> Sets time per dvision (103=goes up, 104=goes down)
+        //-----------------------------------------
+        String str = String.valueOf(data);
+        Log.d(TAG, "Sending result=" + str);
+        final byte[] tx = str.getBytes();
+        if (mConnected) {
+            characteristicTX.setValue(tx);
+            mBluetoothLeService.writeCharacteristic(characteristicTX);
+            mBluetoothLeService.setCharacteristicNotification(characteristicRX, true);
+        }
+    }
+
+    @Override
+    public void onClick(View v)
+    {
+        byte dataSend;
+        // Check id
+        int id = v.getId();
+        switch(id)
+        {
+            // X1
+            case R.id.X1:
+                ((RadioButton)v).setChecked(true);
+
+                v = findViewById(R.id.X10);
+                ((RadioButton)v).setChecked(false);
+                v = findViewById(R.id.X100);
+                ((RadioButton)v).setChecked(false);
+
+                dataSend=1;
+                writeBt(dataSend);
+                break;
+
+            // X10
+            case R.id.X10:
+                ((RadioButton)v).setChecked(true);
+
+                v = findViewById(R.id.X1);
+                ((RadioButton)v).setChecked(false);
+                v = findViewById(R.id.X100);
+                ((RadioButton)v).setChecked(false);
+
+                dataSend=2;
+                writeBt(dataSend);
+                break;
+
+            // X100
+            case R.id.X100:
+                ((RadioButton)v).setChecked(true);
+
+                v = findViewById(R.id.X1);
+                ((RadioButton)v).setChecked(false);
+                v = findViewById(R.id.X10);
+                ((RadioButton)v).setChecked(false);
+
+                dataSend=3;
+                writeBt(dataSend);
+                break;
+
+            // Time per division up
+            case R.id.up:
+                dataSend=4;
+                writeBt(dataSend);
+                break;
+
+            // Time per division down
+            case R.id.down:
+                dataSend=5;
+                writeBt(dataSend);
+                break;
+        }
+    }
+
+    private void setupWidgets()
+    {
+        View v;
+
+        v = findViewById(R.id.X1);
+        if (v != null)
+            v.setOnClickListener(this);
+
+        v = findViewById(R.id.X10);
+        if (v != null)
+            v.setOnClickListener(this);
+
+        v = findViewById(R.id.X100);
+        if (v != null)
+            v.setOnClickListener(this);
+
+        v = findViewById(R.id.up);
+        if (v != null)
+            v.setOnClickListener(this);
+
+        v = findViewById(R.id.down);
+        if (v != null)
+            v.setOnClickListener(this);
+
+    }
 }
-
-
-

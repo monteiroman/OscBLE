@@ -60,9 +60,6 @@ public class BluetoothLeService extends Service {
     static final char READ_HEADER = 4;
     static final char PACKET_INIT = 5;
 
-    List<String> vDivArray = Arrays.asList("0v", "10mV", "100mV", "1V", "10V");
-    List<String> tDivArray = Arrays.asList("0s", "10uS", "100uV", "1mS", "10mS");
-
     int j = 0;
 
     byte aux;
@@ -226,14 +223,14 @@ public class BluetoothLeService extends Service {
 
                 case SVD_READ:
                     aux = (byte) unsignedData;
-                    if(aux<5 && aux>=0)
+                    if(aux<3 && aux>=0)
                         procData[640] = (int) aux;
                     state = READ_HEADER;
                     break;
 
                 case STD_READ:
                     aux = (byte) unsignedData;
-                    if(aux<5 && aux>=0)
+                    if(aux<7 && aux>=0)
                         procData[641] = (int) aux;
                     state = READ_HEADER;
                     break;

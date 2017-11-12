@@ -16,7 +16,7 @@
 <resources>
     <string name="app_name">OscBLE2</string>
     <string name="ble_not_supported">BLE is not supported</string>
-    <string name="label_data">Data packets:  </string>
+    <string name="label_data">Dpkt:  </string>
     <string name="label_device_address">Device address:</string>
     <string name="label_state">State:</string>
     <string name="no_data">No data</string>
