@@ -522,8 +522,8 @@ public class DeviceControlActivity extends Activity implements View.OnClickListe
 
                 v = findViewById(R.id.X10);
                 ((RadioButton)v).setChecked(false);
-                v = findViewById(R.id.X100);
-                ((RadioButton)v).setChecked(false);
+                /*v = findViewById(R.id.X100);
+                ((RadioButton)v).setChecked(false);*/
 
                 dataSend=1;
                 writeBt(dataSend);
@@ -535,15 +535,15 @@ public class DeviceControlActivity extends Activity implements View.OnClickListe
 
                 v = findViewById(R.id.X1);
                 ((RadioButton)v).setChecked(false);
-                v = findViewById(R.id.X100);
-                ((RadioButton)v).setChecked(false);
+                /*v = findViewById(R.id.X100);
+                ((RadioButton)v).setChecked(false);*/
 
                 dataSend=2;
                 writeBt(dataSend);
                 break;
 
             // X100
-            case R.id.X100:
+            /*case R.id.X100:
                 ((RadioButton)v).setChecked(true);
 
                 v = findViewById(R.id.X1);
@@ -553,7 +553,7 @@ public class DeviceControlActivity extends Activity implements View.OnClickListe
 
                 dataSend=3;
                 writeBt(dataSend);
-                break;
+                break;*/
 
             // Time per division up
             case R.id.up:
@@ -581,9 +581,9 @@ public class DeviceControlActivity extends Activity implements View.OnClickListe
         if (v != null)
             v.setOnClickListener(this);
 
-        v = findViewById(R.id.X100);
+        /*v = findViewById(R.id.X100);
         if (v != null)
-            v.setOnClickListener(this);
+            v.setOnClickListener(this);*/
 
         v = findViewById(R.id.up);
         if (v != null)

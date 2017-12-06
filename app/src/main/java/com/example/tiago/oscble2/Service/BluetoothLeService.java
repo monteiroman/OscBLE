@@ -150,16 +150,6 @@ public class BluetoothLeService extends Service {
         Log.i(TAG, "data"+characteristic.getValue());
 
         if (data != null && data.length > 0) {
-            /*final StringBuilder stringBuilder = new StringBuilder(data.length);
-            for(byte byteChar : data)
-                stringBuilder.append(String.format("%02X ", byteChar));
-            Log.d(TAG, String.format("%s", new String(data)));
-            // getting cut off when longer, need to push on new line, 0A
-            intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));*/
-
-            //intent.putExtra(EXTRA_DATA,data);
-            //sendBroadcast(intent);
-
             validateData(action, data);
         }
     }
@@ -194,13 +184,6 @@ public class BluetoothLeService extends Service {
                         procData[j] = unsignedData;
                         if(j<640)
                             j++;
-/*
-                        if (j == 640) {
-                            j = 0;
-                            intent.putExtra(EXTRA_DATA,procData);
-                            sendBroadcast(intent);
-                            procData[642] = 0;
-                        }*/
                     }
                     state = READ_HEADER;
                     break;
@@ -210,13 +193,6 @@ public class BluetoothLeService extends Service {
                         procData[j] = -(unsignedData);
                         if(j<640)
                             j++;
-                        /*
-                        if (j == 640) {
-                            j = 0;
-                            intent.putExtra(EXTRA_DATA,procData);
-                            sendBroadcast(intent);
-                            procData[642] = 0;
-                        }*/
                     }
                     state = READ_HEADER;
                     break;
